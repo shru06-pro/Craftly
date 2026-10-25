@@ -50,9 +50,11 @@ export function CartProvider({ children }) {
     setCartItems((prevItems) => {
       const existingIndex = prevItems.findIndex((item) => item.configKey === configKey);
       if (existingIndex > -1) {
-        const copy = [...prevItems];
-        copy[existingIndex].quantity += quantity;
-        return copy;
+        return prevItems.map((item, idx) =>
+          idx === existingIndex
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
       }
 
       const newItem = {

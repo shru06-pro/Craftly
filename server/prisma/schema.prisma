@@ -1,0 +1,480 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CUSTOMER
+  ARTISAN
+  SUPPORT
+  OPS
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum MeasurementUnit {
+  INCH
+  CM
+}
+
+enum FitPreference {
+  REGULAR
+  RELAXED
+  TAILORED
+}
+
+enum ProductStatus {
+  DRAFT
+  REVIEW
+  LIVE
+  ARCHIVED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FLAT_PAISE
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  AWAITING_ARTISAN
+  ACCEPTED
+  IN_PRODUCTION
+  QC_PASSED
+  READY_TO_SHIP
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum FulfilmentStatus {
+  AWAITING_ARTISAN
+  ACCEPTED
+  IN_PRODUCTION
+  QC_PASSED
+  READY_TO_SHIP
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  UPI
+  NETBANKING
+  CARD
+  COD
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum MilestoneType {
+  MATERIALS_READY
+  EMBROIDERY_BLOCKPRINT_DONE
+  TAILORING_DONE
+  QC_PASSED
+  READY_FOR_DISPATCH
+}
+
+enum SubscriberStatus {
+  PENDING_CONFIRMATION
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+// -------------------------------------------------------------
+// Identity & Users
+// -------------------------------------------------------------
+model User {
+  id                   String                 @id @default(uuid())
+  email                String                 @unique
+  phone                String?                @unique
+  passwordHash         String
+  name                 String
+  role                 Role                   @default(CUSTOMER)
+  status               UserStatus             @default(ACTIVE)
+  marketingConsent     Boolean                @default(false)
+  whatsappConsent      Boolean                @default(false)
+  consentTimestamp     DateTime?
+  addresses            Address[]
+  measurementProfiles  MeasurementProfile[]
+  orders               Order[]
+  reviews              Review[]
+  cart                 Cart?
+  artisanStudio        Artisan?               @relation("ArtisanOwner")
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@map("users")
+}
+
+model Address {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName     String
+  phone        String
+  line1        String
+  locality     String
+  city         String
+  state        String
+  pincode      String
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("addresses")
+}
+
+model MeasurementProfile {
+  id            String          @id @default(uuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String          @default("Default Measurements")
+  unit          MeasurementUnit @default(INCH)
+  bust          Float
+  waist         Float
+  hips          Float
+  shoulder      Float
+  sleeveLength  Float
+  garmentLength Float
+  fitPreference FitPreference   @default(REGULAR)
+  version       Int             @default(1)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@map("measurement_profiles")
+}
+
+// -------------------------------------------------------------
+// Artisans & Studios
+// -------------------------------------------------------------
+model Artisan {
+  id              String      @id @default(uuid())
+  name            String
+  studioName      String
+  craft           String
+  location        String
+  state           String
+  bio             String
+  avatarUrl       String?
+  badge           String?
+  leadTimeMinDays Int         @default(4)
+  leadTimeMaxDays Int         @default(7)
+  verified        Boolean     @default(true)
+  isFeatured      Boolean     @default(false)
+  ownerId         String?     @unique
+  owner           User?       @relation("ArtisanOwner", fields: [ownerId], references: [id])
+  products        Product[]
+  orderItems      OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("artisans")
+}
+
+// -------------------------------------------------------------
+// Catalogue & Products
+// -------------------------------------------------------------
+model Category {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  name        String
+  description String?
+  sortOrder   Int       @default(0)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Product {
+  id                       String           @id @default(uuid())
+  slug                     String           @unique
+  name                     String
+  tagline                  String?
+  description              String
+  craftDetails             String?
+  materials                String?
+  artisanId                String
+  artisan                  Artisan          @relation(fields: [artisanId], references: [id])
+  categoryId               String
+  category                 Category         @relation(fields: [categoryId], references: [id])
+  basePricePaise           Int
+  compareAtPricePaise      Int?
+  hsnCode                  String           @default("6204")
+  taxPercent               Float            @default(5.0)
+  allowsCustomMeasurements Boolean          @default(true)
+  tailoringFeePaise        Int              @default(35000) // ₹350 = 35000 paise
+  leadTimeMinDays          Int              @default(4)
+  leadTimeMaxDays          Int              @default(7)
+  isBespoke                Boolean          @default(true)
+  isHandcrafted            Boolean          @default(true)
+  rating                   Float            @default(4.9)
+  reviewsCount             Int              @default(0)
+  status                   ProductStatus    @default(LIVE)
+  variants                 ProductVariant[]
+  media                    Media[]
+  cartItems                CartItem[]
+  reviews                  Review[]
+  orderItems               OrderItem[]
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id                   String   @id @default(uuid())
+  productId            String
+  product              Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  colorName            String
+  colorHex             String
+  sampleImage          String
+  isPhotographedSample Boolean  @default(false)
+  availableSizes       String[] // e.g. ["XS", "S", "M", "L", "XL", "Custom"]
+  inStock              Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("product_variants")
+}
+
+model Media {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  altText   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("media")
+}
+
+// -------------------------------------------------------------
+// Cart & Pricing
+// -------------------------------------------------------------
+model Cart {
+  id         String     @id @default(uuid())
+  userId     String?    @unique
+  user       User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestToken String?    @unique
+  items      CartItem[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id                 String   @id @default(uuid())
+  cartId             String
+  cart               Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id])
+  colorName          String
+  colorHex           String?
+  size               String
+  isCustomSized      Boolean  @default(false)
+  customMeasurements Json?
+  monogramInitials   String?
+  tailoringFeePaise  Int      @default(0)
+  quantity           Int      @default(1)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("cart_items")
+}
+
+model Coupon {
+  id                 String             @id @default(uuid())
+  code               String             @unique
+  discountType       DiscountType
+  discountValue      Int // e.g. 10 for 10%, or 50000 for ₹500 flat
+  minCartValuePaise  Int                @default(0)
+  maxDiscountPaise   Int?
+  maxGlobalUses      Int?
+  maxUsesPerUser     Int                @default(1)
+  usedCount          Int                @default(0)
+  isActive           Boolean            @default(true)
+  expiresAt          DateTime?
+  redemptions        CouponRedemption[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@map("coupons")
+}
+
+model CouponRedemption {
+  id         String   @id @default(uuid())
+  couponId   String
+  coupon     Coupon   @relation(fields: [couponId], references: [id])
+  userId     String?
+  orderId    String?
+  redeemedAt DateTime @default(now())
+
+  @@map("coupon_redemptions")
+}
+
+// -------------------------------------------------------------
+// Orders, Fulfilment & Production Milestones
+// -------------------------------------------------------------
+model Order {
+  id                  String        @id @default(uuid())
+  orderNumber         String        @unique // e.g. "CRF-IN-849201"
+  userId              String?
+  user                User?         @relation(fields: [userId], references: [id])
+  status              OrderStatus   @default(PENDING_PAYMENT)
+  subtotalPaise       Int
+  tailoringTotalPaise Int           @default(0)
+  shippingFeePaise    Int           @default(0)
+  discountPaise       Int           @default(0)
+  grandTotalPaise     Int
+  couponCode          String?
+  paymentMethod       PaymentMethod @default(UPI)
+  paymentStatus       PaymentStatus @default(PENDING)
+  shippingAddress     Json // Full snapshot of the shipping address
+  idempotencyKey      String?       @unique
+  items               OrderItem[]
+  payments            Payment[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id                   String                 @id @default(uuid())
+  orderId              String
+  order                Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  artisanId            String
+  artisan              Artisan                @relation(fields: [artisanId], references: [id])
+  productId            String
+  product              Product                @relation(fields: [productId], references: [id])
+  productName          String
+  colorName            String
+  size                 String
+  isCustomSized        Boolean                @default(false)
+  measurementsSnapshot Json?
+  monogramInitials     String?
+  unitPricePaise       Int
+  tailoringFeePaise    Int                    @default(0)
+  quantity             Int                    @default(1)
+  status               FulfilmentStatus       @default(AWAITING_ARTISAN)
+  milestones           ProductionMilestone[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@map("order_items")
+}
+
+model ProductionMilestone {
+  id          String        @id @default(uuid())
+  orderItemId String
+  orderItem   OrderItem     @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  type        MilestoneType
+  title       String
+  description String?
+  photoUrl    String?
+  recordedAt  DateTime      @default(now())
+
+  @@map("production_milestones")
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  gateway           String        @default("RAZORPAY")
+  gatewayOrderId    String?
+  gatewayPaymentId  String?       @unique
+  gatewaySignature  String?
+  amountPaise       Int
+  method            PaymentMethod
+  status            PaymentStatus @default(PENDING)
+  rawWebhookPayload Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+// -------------------------------------------------------------
+// Reviews & Trust
+// -------------------------------------------------------------
+model Review {
+  id            String   @id @default(uuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  authorName    String
+  authorCity    String?
+  rating        Int      @default(5)
+  headline      String?
+  comment       String
+  verifiedBuyer Boolean  @default(true)
+  isApproved    Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  @@map("reviews")
+}
+
+// -------------------------------------------------------------
+// Marketing & Engagement
+// -------------------------------------------------------------
+model NewsletterSubscriber {
+  id                String           @id @default(uuid())
+  email             String           @unique
+  status            SubscriberStatus @default(ACTIVE)
+  source            String           @default("storefront_footer")
+  unsubscribeToken  String           @unique @default(uuid())
+  subscribedAt      DateTime         @default(now())
+  unsubscribedAt    DateTime?
+
+  @@map("newsletter_subscribers")
+}
+
+// -------------------------------------------------------------
+// Audit Log & Transactional Outbox
+// -------------------------------------------------------------
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model OutboxEvent {
+  id          String    @id @default(uuid())
+  eventType   String
+  payload     Json
+  processed   Boolean   @default(false)
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("outbox_events")
+}

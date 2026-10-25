@@ -15,17 +15,17 @@ export default function CheckoutModal({ isOpen, onClose }) {
   const { cartItems, grandTotal, subtotal, tailoringTotal, shippingFee, discountAmount, clearCart } = useCart();
 
   const [formData, setFormData] = useState({
-    fullName: 'Priya Sharma',
-    phone: '9876543210',
-    pincode: '560038',
-    addressLine: 'Flat 402, Kaveri Heights, 12th Main',
-    locality: 'Indiranagar',
-    city: 'Bengaluru',
-    state: 'Karnataka',
+    fullName: '',
+    phone: '',
+    pincode: '',
+    addressLine: '',
+    locality: '',
+    city: '',
+    state: '',
   });
 
   const [paymentMethod, setPaymentMethod] = useState('upi');
-  const [upiId, setUpiId] = useState('priyasharma@okhdfcbank');
+  const [upiId, setUpiId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(null);
 
