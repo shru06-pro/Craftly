@@ -1,0 +1,76 @@
+/* ===================================================================
+   Craftly Design System Variables & Tokens
+   Editorial, tactile aesthetic for artisanal fashion & handcrafted goods
+   =================================================================== */
+
+:root {
+  /* Warm Earth & Artisanal Palette */
+  --color-sand-50: #FAF7F2;          /* Page body background (linen/parchment) */
+  --color-sand-100: #F3ECE1;         /* Subtle secondary background / hover */
+  --color-sand-200: #E6DCCD;         /* Borders, dividers, subtle outlines */
+  --color-sand-300: #D4C6B2;         /* Stronger borders & disabled elements */
+
+  --color-surface: #FFFFFF;          /* Card & container surfaces */
+  --color-surface-elevated: #FFFDFC; /* Floating dialogs & elevated sheets */
+
+  --color-terracotta: #B95835;       /* Primary brand action (warm artisanal clay) */
+  --color-terracotta-hover: #9E4626; /* Hover state for primary action */
+  --color-terracotta-light: #F9ECE6; /* Soft terracotta background badge / alert */
+
+  --color-espresso: #25201E;         /* Primary text / headings (rich warm charcoal) */
+  --color-espresso-light: #4A423E;   /* Secondary body text */
+  --color-muted: #7E746F;            /* Captions, timestamps, placeholders */
+
+  --color-sage: #526E57;             /* Eco / handmade craft accent */
+  --color-sage-light: #EEF3EF;       /* Sage tint for badges */
+  --color-amber: #C9822B;            /* Featured / rating star accent */
+  --color-amber-light: #FDF4E7;      /* Amber tint for badges */
+
+  /* Typography Scales */
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  --text-5xl: 3rem;       /* 48px */
+
+  /* Spacing */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+
+  /* Border Radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Tactile Warm Shadows */
+  --shadow-sm: 0 1px 2px rgba(37, 32, 30, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(37, 32, 30, 0.08), 0 2px 4px -2px rgba(37, 32, 30, 0.04);
+  --shadow-lg: 0 12px 24px -4px rgba(37, 32, 30, 0.1), 0 4px 8px -2px rgba(37, 32, 30, 0.04);
+  --shadow-hover: 0 16px 32px -4px rgba(185, 88, 53, 0.14), 0 6px 12px -3px rgba(37, 32, 30, 0.06);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 350ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout Container */
+  --container-max: 1200px;
+}

@@ -1,0 +1,374 @@
+/* src/components/layout/Navbar.css */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: rgba(250, 247, 242, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-sand-200);
+  transition: all var(--transition-base);
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 74px;
+  gap: var(--space-4);
+}
+
+/* =========================================================
+   1. Brand Logo & Identity (Left)
+   ========================================================= */
+.brand-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.brand-title {
+  font-family: var(--font-serif);
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--color-espresso);
+  display: flex;
+  align-items: baseline;
+  line-height: 1;
+}
+
+.brand-title-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-terracotta);
+  display: inline-block;
+  margin-left: 2px;
+}
+
+.brand-subtitle {
+  font-family: var(--font-sans);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--color-muted);
+  font-weight: 600;
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   2. Main Navigation Links (Center)
+   ========================================================= */
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+  padding: 0 var(--space-2);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.8vw, 24px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+  color: var(--color-espresso-light);
+  position: relative;
+  padding: 6px 0;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--color-terracotta);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: var(--color-terracotta);
+  transition: width var(--transition-fast);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* =========================================================
+   3. Actions: Search -> Craft Advisor -> Account -> Wishlist -> Cart
+   ========================================================= */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Search Box with fully visible placeholder */
+.nav-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nav-search-input {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-sand-200);
+  border-radius: var(--radius-full);
+  padding: 8px 14px 8px 34px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--color-espresso);
+  width: 215px; /* Ensures 'Search Chikankari, Bagru...' is fully visible */
+  transition: all var(--transition-base);
+}
+
+.nav-search-input:focus {
+  outline: none;
+  width: 245px;
+  border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 3px rgba(185, 88, 53, 0.12);
+}
+
+.nav-search-input::placeholder {
+  color: var(--color-sand-300);
+}
+
+.nav-search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+/* Consistent Outline Icon Buttons (User, Wishlist, Cart, Mobile Toggle) */
+.icon-button {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-sand-200);
+  background-color: var(--color-surface);
+  color: var(--color-espresso);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+  box-sizing: border-box;
+  transition: all var(--transition-fast);
+}
+
+.icon-button:hover {
+  border-color: var(--color-terracotta);
+  color: var(--color-terracotta);
+  box-shadow: 0 2px 6px rgba(185, 88, 53, 0.12);
+  transform: translateY(-1px);
+}
+
+.badge-count {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background-color: var(--color-terracotta);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  width: 17px;
+  height: 17px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Mobile Toggle */
+.mobile-toggle {
+  display: none;
+}
+
+/* =========================================================
+   4. Responsive Breakpoints
+   ========================================================= */
+
+/* On tablet & smaller desktop (<= 1080px), collapse navigation into drawer to avoid squeezing */
+@media (max-width: 1080px) {
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-toggle {
+    display: flex;
+  }
+}
+
+/* On smaller tablet and mobile (<= 768px), move search bar into drawer */
+@media (max-width: 768px) {
+  .nav-search-wrap {
+    display: none;
+  }
+}
+
+/* On mobile (<= 520px) */
+@media (max-width: 520px) {
+  .navbar-container {
+    height: 68px;
+    gap: var(--space-2);
+  }
+
+  .brand-title {
+    font-size: 1.45rem;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  .nav-actions {
+    gap: 6px;
+  }
+
+  .icon-button {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* =========================================================
+   5. Mobile Menu Drawer
+   ========================================================= */
+.mobile-menu-drawer {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-sand-200);
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: 0 12px 24px rgba(37, 32, 30, 0.1);
+  animation: mobileDrawerSlide 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mobileDrawerSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Search Inside Drawer */
+.mobile-search-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.mobile-search-input {
+  width: 100%;
+  background-color: var(--color-sand-50);
+  border: 1px solid var(--color-sand-200);
+  border-radius: var(--radius-md);
+  padding: 10px 14px 10px 36px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-espresso);
+}
+
+.mobile-search-input:focus {
+  outline: none;
+  border-color: var(--color-terracotta);
+}
+
+.mobile-search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--color-muted);
+}
+
+/* Nav links in drawer */
+.mobile-nav-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+}
+
+.mobile-nav-links a {
+  display: block;
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-espresso);
+  padding: var(--space-2) 0;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.mobile-nav-links a:hover {
+  color: var(--color-terracotta);
+}
+
+.mobile-menu-divider {
+  height: 1px;
+  background-color: var(--color-sand-200);
+  margin: var(--space-1) 0;
+}
+
+/* Mobile extra action buttons */
+.mobile-extra-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mobile-extra-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--color-sand-200);
+  border-radius: var(--radius-md);
+  padding: 10px var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-espresso);
+  cursor: pointer;
+  text-decoration: none;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.mobile-extra-btn:hover {
+  background-color: var(--color-sand-50);
+  border-color: var(--color-terracotta);
+  color: var(--color-terracotta);
+}

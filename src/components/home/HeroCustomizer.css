@@ -1,0 +1,316 @@
+/* src/components/home/HeroCustomizer.css */
+
+.hero-customizer-section {
+  padding: var(--space-12) 0 var(--space-16);
+  background: radial-gradient(circle at top right, rgba(230, 220, 205, 0.4) 0%, transparent 60%),
+              linear-gradient(180deg, var(--color-sand-100) 0%, var(--color-sand-50) 100%);
+  border-bottom: 1px solid var(--color-sand-200);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-layout-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+/* Editorial Copy Side */
+.hero-editorial-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background-color: var(--color-sand-50);
+  border: 1px solid var(--color-sand-200);
+  color: var(--color-espresso);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-main-heading {
+  font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--color-espresso);
+  margin-bottom: var(--space-4);
+  letter-spacing: -1.2px;
+}
+
+.hero-main-heading em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--color-terracotta);
+}
+
+.hero-editorial-lead {
+  font-size: var(--text-lg);
+  color: var(--color-espresso-light);
+  margin-bottom: var(--space-8);
+  max-width: 540px;
+  line-height: 1.65;
+}
+
+.hero-trust-indicators {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-sand-200);
+  flex-wrap: wrap;
+}
+
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-xs);
+  color: var(--color-espresso-light);
+  font-weight: 500;
+}
+
+.trust-item strong {
+  color: var(--color-espresso);
+}
+
+/* Interactive Studio Bench Card */
+.studio-bench-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-sand-200);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.bench-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-sand-100);
+}
+
+.bench-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-espresso);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bench-card-status {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-sage);
+  background-color: var(--color-sage-light);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* Image with live tactile tag */
+.bench-preview-stage {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-5);
+  background-color: var(--color-sand-100);
+}
+
+.bench-stage-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+/* Floating bespoke monogram badge */
+.tactile-monogram-tag {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  background-color: rgba(250, 247, 242, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1px dashed var(--color-terracotta);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-md);
+  max-width: 85%;
+}
+
+.monogram-stitch-seal {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-terracotta);
+  background-color: var(--color-terracotta-light);
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+
+.monogram-tag-text {
+  font-size: 11px;
+  color: var(--color-espresso);
+  line-height: 1.3;
+}
+
+.monogram-tag-text strong {
+  display: block;
+  font-weight: 700;
+}
+
+/* Customizer controls */
+.customizer-controls-box {
+  background-color: var(--color-sand-50);
+  border: 1px solid var(--color-sand-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.control-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-espresso);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.selected-color-name-badge {
+  font-size: 11px;
+  color: var(--color-terracotta);
+  font-weight: 700;
+  margin-left: 6px;
+  text-transform: none;
+}
+
+/* Color swatches with visible active ring */
+.swatches-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.swatch-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  padding: 2px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  background-color: transparent;
+}
+
+.swatch-btn:hover {
+  transform: scale(1.1);
+  border-color: var(--color-sand-300);
+}
+
+.swatch-btn.active {
+  transform: scale(1.15);
+  border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 2px var(--color-terracotta-light), 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.swatch-color-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(0,0,0,0.12);
+}
+
+
+
+/* Monogram Text Input */
+.monogram-input {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-sand-300);
+  border-radius: var(--radius-xs);
+  padding: 6px 10px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-espresso);
+  width: 90px;
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.monogram-input:focus {
+  outline: none;
+  border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 2px rgba(185, 88, 53, 0.15);
+}
+
+/* Bench Footer & Action */
+.bench-action-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.bench-price-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.bench-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bench-price {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-espresso);
+}
+
+.bench-original-price {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  text-decoration: line-through;
+}
+
+.bench-promo-note {
+  font-size: 11px;
+  color: var(--color-terracotta);
+  font-weight: 600;
+}
+
+@media (max-width: 960px) {
+  .hero-layout-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+}

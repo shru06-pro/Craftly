@@ -1,0 +1,71 @@
+/* src/components/layout/AnnouncementBar.css */
+
+.announcement-bar {
+  background-color: var(--color-espresso);
+  color: var(--color-sand-100);
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.announcement-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 22px;
+}
+
+.announcement-text {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+  color: var(--color-sand-100);
+  white-space: nowrap;
+  padding: 0 40px;
+}
+
+.announcement-dismiss {
+  position: absolute;
+  right: var(--space-6);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-sand-300);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  transition: color var(--transition-fast);
+}
+
+.announcement-dismiss:hover {
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .announcement-bar {
+    padding: 5px 0;
+  }
+
+  .announcement-container {
+    min-height: auto;
+  }
+
+  .announcement-text {
+    font-size: 11px;
+    line-height: 1.35;
+    white-space: normal;
+    padding: 0 28px 0 var(--space-2);
+    text-align: left;
+  }
+
+  .announcement-dismiss {
+    right: var(--space-4);
+  }
+}

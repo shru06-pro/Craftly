@@ -1,0 +1,150 @@
+/* src/components/home/ArtisanSpotlight.css */
+
+.artisan-spotlight-section {
+  padding: var(--space-16) 0;
+  background-color: var(--color-sand-100);
+  border-bottom: 1px solid var(--color-sand-200);
+}
+
+.spotlight-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-sand-200);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Image side */
+.spotlight-visual-side {
+  position: relative;
+  min-height: 440px;
+  background-color: var(--color-espresso);
+}
+
+.spotlight-studio-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.spotlight-seal-badge {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  background-color: rgba(37, 32, 30, 0.9);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.spotlight-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-terracotta);
+  object-fit: cover;
+}
+
+.spotlight-seal-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.spotlight-seal-name {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.spotlight-seal-location {
+  font-size: 11px;
+  color: var(--color-sand-200);
+}
+
+/* Content side */
+.spotlight-content-side {
+  padding: var(--space-10) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.spotlight-kicker {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-terracotta);
+  font-weight: 700;
+  display: inline-block;
+  margin-bottom: var(--space-2);
+}
+
+.spotlight-title {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--color-espresso);
+  margin-bottom: var(--space-4);
+  line-height: 1.25;
+}
+
+.spotlight-quote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--color-espresso-light);
+  line-height: 1.6;
+  border-left: 3px solid var(--color-terracotta);
+  padding-left: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.spotlight-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-sand-200);
+  border-bottom: 1px solid var(--color-sand-200);
+  margin-bottom: var(--space-6);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-espresso);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spotlight-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .spotlight-card {
+    grid-template-columns: 1fr;
+  }
+  .spotlight-visual-side {
+    min-height: 300px;
+  }
+}
