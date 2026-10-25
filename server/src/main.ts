@@ -11,9 +11,16 @@ async function bootstrap() {
   // Global API Prefix
   app.setGlobalPrefix('v1');
 
-  // CORS for Vite storefront
+  // Flexible CORS for Vercel storefront & local dev
+  const corsOrigin = process.env.CORS_ORIGIN;
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: corsOrigin
+      ? corsOrigin.includes(',')
+        ? corsOrigin.split(',').map((o) => o.trim())
+        : corsOrigin === '*'
+          ? true
+          : corsOrigin
+      : true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
@@ -49,7 +56,7 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT || 4000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`✨ Craftly Enterprise Backend running at: http://localhost:${port}/v1`);
   console.log(`📖 Interactive OpenAPI (Swagger) Docs: http://localhost:${port}/api/docs`);
 }
