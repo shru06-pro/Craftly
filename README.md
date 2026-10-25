@@ -40,72 +40,81 @@ Craftly is a curated e-commerce platform dedicated to independent Indian weavers
 
 ---
 
-## 🛠️ Technology Stack
+## 🛠️ Technology Stack & Architecture
 
-- **Framework**: React 18
-- **Build Tool**: Vite
-- **Routing**: React Router DOM v6
+Craftly is organized with clean separation between the frontend storefront and enterprise backend:
+
+```
+craftly/
+├── client/              # Frontend Storefront (React 19, Vite 8, React Router 7, Vanilla CSS)
+├── server/              # Enterprise Backend (NestJS 12, Prisma 6, PostgreSQL 16, Redis 7)
+├── docker-compose.yml   # Multi-container local database & cache services
+└── package.json         # Workspace root orchestrator with automated script delegates
+```
+
+### Frontend (`client/`)
+- **Framework**: React 19
+- **Build Tool**: Vite 8
+- **Routing**: React Router DOM v7
 - **Icons**: Lucide React
 - **Styling**: Vanilla CSS with customized HSL tokens, typography, and responsive media queries
 - **Code Quality**: Oxlint
+
+### Backend (`server/`)
+- **Framework**: NestJS 12 (TypeScript, Fastify/Express modular monolith)
+- **Database & ORM**: PostgreSQL 16 with Prisma 6
+- **Caching & Queues**: Redis 7
+- **API Spec**: OpenAPI 3.1 (Swagger) at `/api/docs`
+- **Validation**: Class-validator with DTOs and global exception filters
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher recommended)
-- npm or yarn
+- Node.js (v20 or v22 recommended)
+- npm (v10 or higher)
+- Docker & Docker Compose (for PostgreSQL & Redis)
 
-### Installation
+### Installation & Setup
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/craftly.git
-
-# Navigate into project directory
+git clone https://github.com/shru06-pro/Craftly.git
 cd craftly
 
-# Install dependencies
+# Install dependencies across all workspaces
 npm install
-
-# Start local development server
-npm run dev
+npm --prefix client install
+npm --prefix server install
 ```
 
-The application will be available at `http://localhost:5173/`.
-
-### Linting & Building
+### Running the Services
 
 ```bash
-# Run Oxlint
-npm run lint
+# 1. Start PostgreSQL 16 & Redis
+docker compose up -d
 
-# Build for production
+# 2. Push Prisma schema & seed authentic artisan catalogue
+npm --prefix server run prisma db push
+npm --prefix server run prisma:seed
+
+# 3. Start Frontend Storefront (http://localhost:5173)
+npm run dev:client   # or npm run dev
+
+# 4. Start Backend Server (http://localhost:4000/v1 & Swagger http://localhost:4000/api/docs)
+npm run dev:server
+```
+
+### Building for Production
+
+```bash
+# Build both frontend and backend
 npm run build
-```
 
----
-
-## 📂 Project Architecture
-
-```
-craftly/
-├── public/                 # Static assets and icons
-├── src/
-│   ├── components/
-│   │   ├── cart/           # CartDrawer, CheckoutModal
-│   │   ├── common/         # ProductCard, QuickViewModal, ShoppingAssistant, CustomSizingForm
-│   │   ├── home/           # HeroCustomizer, CraftPillars, ArtisanSpotlight, ReviewsSection, DispatchNewsletter
-│   │   └── layout/         # Navbar, AnnouncementBar, Footer
-│   ├── context/            # CartContext, WishlistContext
-│   ├── data/               # mockProducts (8 verified Indian artisan items)
-│   ├── pages/              # HomePage, ProductDetailPage, WishlistPage
-│   ├── utils/              # assistantNLP, formatCurrency, productCustomization
-│   ├── App.jsx             # Root layout with outlet contexts
-│   └── main.jsx            # React router entrypoint
-├── package.json
-└── vite.config.js
+# Or build individually
+npm run build:client
+npm run build:server
 ```
 
 ---
