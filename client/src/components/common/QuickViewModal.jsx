@@ -32,6 +32,7 @@ export default function QuickViewModal({ product, initialColor, onClose }) {
   );
   const [failedUrls, setFailedUrls] = useState(() => new Set());
   const [lastWorkingSrc, setLastWorkingSrc] = useState('');
+  const [showSilhouetteSample, setShowSilhouetteSample] = useState(false);
 
   // Standard Size state
   const initialSize = product?.availableSizes?.[0] || 'Standard';
@@ -64,6 +65,7 @@ export default function QuickViewModal({ product, initialColor, onClose }) {
       setIsCustomSized(false);
       setMeasurementErrors({});
       setFailedUrls(new Set());
+      setShowSilhouetteSample(false);
     }
   }, [product, initialColor]);
 
@@ -85,8 +87,14 @@ export default function QuickViewModal({ product, initialColor, onClose }) {
     currentImage: lastWorkingSrc,
     failedUrls,
   });
-  const previewImage = colorwayResult.src;
   const baseSampleName = product.colorVariants?.[0]?.name || 'Standard Shade';
+  const baseSampleImage = product.colorVariants?.[0]?.image || product.image;
+
+  // Preview Image: if user toggled silhouette view on a made-to-order item, show base sample photo with clear disclaimer
+  const previewImage =
+    selectedColor?.isMadeToOrder && showSilhouetteSample
+      ? baseSampleImage
+      : colorwayResult.src;
 
   const handleImageError = () => {
     if (previewImage) {
@@ -117,6 +125,9 @@ export default function QuickViewModal({ product, initialColor, onClose }) {
 
     addToCart(product, {
       selectedColor,
+      variantId: selectedColor?.id,
+      isMadeToOrder: Boolean(selectedColor?.isMadeToOrder),
+      leadTime: selectedColor?.leadTime || product.leadTime,
       selectedSize: isCustomSized ? 'Custom Tailored' : selectedSize,
       isCustomSized,
       customMeasurements: isCustomSized ? measurements : null,
@@ -164,17 +175,75 @@ export default function QuickViewModal({ product, initialColor, onClose }) {
             onError={handleImageError}
           />
 
+          {/* Silhouette Reference Overlay if toggled */}
+          {selectedColor?.isMadeToOrder && showSilhouetteSample && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '12px',
+                left: '12px',
+                right: '12px',
+                padding: '6px 10px',
+                background: 'rgba(37, 32, 30, 0.88)',
+                color: '#FAF7F2',
+                fontSize: '11px',
+                borderRadius: '6px',
+                backdropFilter: 'blur(4px)',
+                textAlign: 'center',
+                lineHeight: 1.3,
+                zIndex: 4,
+              }}
+            >
+              Silhouette Reference Only ({baseSampleName})<br />
+              <strong style={{ color: '#D4AF37' }}>Selected Order Shade: {selectedColor.name}</strong>
+            </div>
+          )}
+
           <div className="modal-color-preview-badge">
             <span
               className="modal-color-preview-dot"
               style={{ backgroundColor: selectedColor?.hex }}
             />
             <span>
-              {colorwayResult.isDedicated
+              {selectedColor?.isMadeToOrder
+                ? `Made to Order: ${selectedColor?.name}`
+                : colorwayResult.isDedicated
                 ? `Tone: ${selectedColor?.name}`
-                : `Shade: ${selectedColor?.name}${colorwayResult.alternativeColor ? ` (Preview: ${colorwayResult.alternativeColor.name})` : ''}`}
+                : `Shade: ${selectedColor?.name}`}
             </span>
           </div>
+
+          {/* Toggle button to inspect garment silhouette for made-to-order shades */}
+          {selectedColor?.isMadeToOrder && (
+            <button
+              type="button"
+              onClick={() => setShowSilhouetteSample(!showSilhouetteSample)}
+              style={{
+                position: 'absolute',
+                bottom: '12px',
+                left: '12px',
+                right: '12px',
+                padding: '7px 12px',
+                background: 'rgba(255, 255, 255, 0.94)',
+                border: '1px solid #D8C7B5',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 600,
+                color: 'var(--color-espresso)',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                zIndex: 4,
+              }}
+            >
+              {showSilhouetteSample
+                ? '🎨 Return to Dye Swatch Card'
+                : `📷 Inspect Cut & Silhouette (${baseSampleName})`}
+            </button>
+          )}
         </div>
 
         {/* Content & Options Column */}
@@ -207,17 +276,35 @@ export default function QuickViewModal({ product, initialColor, onClose }) {
                   <span>Artisan Dye Tone:</span>
                   <span style={{ color: 'var(--color-terracotta)', textTransform: 'none' }}>
                     {selectedColor?.name}
+                    {selectedColor?.isMadeToOrder && (
+                      <span
+                        style={{
+                          marginLeft: '6px',
+                          fontSize: '10px',
+                          padding: '2px 6px',
+                          background: 'rgba(184, 88, 52, 0.1)',
+                          color: '#B85834',
+                          borderRadius: '4px',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Made to Order
+                      </span>
+                    )}
                   </span>
                 </div>
 
                 <div className="modal-swatches-wrap">
                   {product.colorVariants.map((variant) => (
                     <button
-                      key={variant.name}
+                      key={variant.id || variant.name}
                       type="button"
                       className={`modal-swatch-btn ${selectedColor?.name === variant.name ? 'active' : ''}`}
-                      onClick={() => setSelectedColor(variant)}
-                      title={variant.name}
+                      onClick={() => {
+                        setSelectedColor(variant);
+                        setShowSilhouetteSample(false);
+                      }}
+                      title={`${variant.name}${variant.isMadeToOrder ? ' (Made to Order upon commission)' : ''}`}
                       aria-label={`Select dye tone ${variant.name}`}
                     >
                       <span
@@ -229,10 +316,31 @@ export default function QuickViewModal({ product, initialColor, onClose }) {
                   ))}
                 </div>
 
-                {/* Honest artisan customization note if using alternative or closest sample */}
-                {colorwayResult.isAlternative && (
-                  <div className="modal-custom-shade-note">
-                    ℹ️ Studio sample shown in <strong>{colorwayResult.alternativeColor?.name || baseSampleName}</strong> (closest available match). Selecting <strong>{selectedColor.name}</strong> is an artisan made-to-order option crafted in natural dye vats by {product.artisan.studio}.
+                {/* Honest artisan customization note if Made-to-Order */}
+                {selectedColor?.isMadeToOrder && (
+                  <div
+                    className="modal-custom-shade-note"
+                    style={{
+                      background: '#FFF8F2',
+                      borderColor: '#E8D4C4',
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      marginTop: '10px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#B85834', fontWeight: 600, fontSize: '12px' }}>
+                      <Clock size={13} />
+                      <span>Made-to-Order Dye Commission</span>
+                    </div>
+                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', lineHeight: 1.45, color: '#5C544F' }}>
+                      {selectedColor.artisanNote ||
+                        `Studio preview photography is not available for this custom shade. Handcrafted and dyed upon order by ${product.artisan.studio}.`}
+                    </p>
+                    <div style={{ marginTop: '6px', fontSize: '11px', color: '#7E746F' }}>
+                      ⏱ Atelier Lead Time: <strong>{selectedColor.leadTime || '7-10 business days'}</strong>
+                    </div>
                   </div>
                 )}
               </div>
@@ -336,6 +444,10 @@ export default function QuickViewModal({ product, initialColor, onClose }) {
               {isAdded ? (
                 <>
                   <Check size={16} /> Added to Studio Bag!
+                </>
+              ) : selectedColor?.isMadeToOrder ? (
+                <>
+                  Commission Made-to-Order • {formatINR(totalPrice)}
                 </>
               ) : (
                 <>

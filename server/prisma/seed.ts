@@ -1,28 +1,146 @@
-import { PrismaClient, Role, UserStatus, ProductStatus, DiscountType } from '@prisma/client';
+import { PrismaClient, Role, UserStatus, ProductStatus, DiscountType, StoreStatus, AdminRoleType } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting Craftly database seed...');
 
-  // 1. Seed Demo Admin User
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@craftly.in' },
-    update: {},
+  const salt = await bcrypt.genSalt(10);
+  const defaultPasswordHash = await bcrypt.hash('craftly123', salt);
+  const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || 'Craftly@SuperAdmin2026!';
+  const superAdminPasswordHash = await bcrypt.hash(superAdminPassword, salt);
+  const superAdminEmail = process.env.SUPER_ADMIN_EMAIL || 'superadmin@craftly.in';
+
+  // 1. Seed Super Admin User & Admin Profile
+  const superAdmin = await prisma.user.upsert({
+    where: { email: superAdminEmail },
+    update: {
+      role: Role.SUPER_ADMIN,
+      status: UserStatus.ACTIVE,
+    },
     create: {
-      email: 'admin@craftly.in',
-      name: 'Craftly Atelier Admin',
-      phone: '+919999900000',
-      passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$dev_admin_hash_placeholder',
-      role: Role.ADMIN,
+      email: superAdminEmail,
+      name: 'Craftly Chief Super Admin',
+      phone: '+919999900001',
+      passwordHash: superAdminPasswordHash,
+      role: Role.SUPER_ADMIN,
       status: UserStatus.ACTIVE,
       marketingConsent: true,
       whatsappConsent: true,
     },
   });
-  console.log(`✓ Admin user created: ${admin.email}`);
 
-  // 2. Seed Categories
+  await prisma.adminProfile.upsert({
+    where: { userId: superAdmin.id },
+    update: {
+      roleType: AdminRoleType.SUPER_ADMIN,
+      permissions: ['*'],
+      isActive: true,
+    },
+    create: {
+      userId: superAdmin.id,
+      roleType: AdminRoleType.SUPER_ADMIN,
+      permissions: ['*'],
+      isActive: true,
+    },
+  });
+  console.log(`✓ Super Admin created: ${superAdmin.email}`);
+
+  // 2. Seed Store Approval Admin
+  const approvalAdmin = await prisma.user.upsert({
+    where: { email: 'storeadmin@craftly.in' },
+    update: {
+      role: Role.ADMIN,
+      status: UserStatus.ACTIVE,
+    },
+    create: {
+      email: 'storeadmin@craftly.in',
+      name: 'Craftly Store Approval Officer',
+      phone: '+919999900002',
+      passwordHash: defaultPasswordHash,
+      role: Role.ADMIN,
+      status: UserStatus.ACTIVE,
+    },
+  });
+
+  await prisma.adminProfile.upsert({
+    where: { userId: approvalAdmin.id },
+    update: {
+      roleType: AdminRoleType.STORE_APPROVAL_ADMIN,
+      permissions: ['stores:read', 'stores:approve', 'stores:reject', 'stores:suspend'],
+      isActive: true,
+    },
+    create: {
+      userId: approvalAdmin.id,
+      roleType: AdminRoleType.STORE_APPROVAL_ADMIN,
+      permissions: ['stores:read', 'stores:approve', 'stores:reject', 'stores:suspend'],
+      isActive: true,
+    },
+  });
+  console.log(`✓ Store Approval Admin created: ${approvalAdmin.email}`);
+
+  // 3. Seed Demo Store Owner (owns Noor Chikankari & Chippa Mohalla)
+  const storeOwner = await prisma.user.upsert({
+    where: { email: 'owner@craftly.in' },
+    update: {
+      role: Role.STORE_OWNER,
+      status: UserStatus.ACTIVE,
+    },
+    create: {
+      email: 'owner@craftly.in',
+      name: 'Begum Naseem Akhtar',
+      phone: '+919876543210',
+      passwordHash: defaultPasswordHash,
+      role: Role.STORE_OWNER,
+      status: UserStatus.ACTIVE,
+      marketingConsent: true,
+      whatsappConsent: true,
+    },
+  });
+  console.log(`✓ Store Owner created: ${storeOwner.email}`);
+
+  // 4. Seed Demo Customer
+  const customer = await prisma.user.upsert({
+    where: { email: 'customer@craftly.in' },
+    update: {
+      role: Role.CUSTOMER,
+      status: UserStatus.ACTIVE,
+    },
+    create: {
+      email: 'customer@craftly.in',
+      name: 'Aarav Sharma',
+      phone: '+919811122233',
+      passwordHash: defaultPasswordHash,
+      role: Role.CUSTOMER,
+      status: UserStatus.ACTIVE,
+      marketingConsent: true,
+      whatsappConsent: true,
+    },
+  });
+
+  // Seed Customer Default Address
+  const existingAddress = await prisma.address.findFirst({
+    where: { userId: customer.id },
+  });
+  if (!existingAddress) {
+    await prisma.address.create({
+      data: {
+        userId: customer.id,
+        fullName: 'Aarav Sharma',
+        phone: '+919811122233',
+        line1: 'B-42, Gulmohar Enclave, Near Metro Gate 2',
+        locality: 'Hauz Khas',
+        city: 'New Delhi',
+        state: 'Delhi',
+        pincode: '110016',
+        isDefault: true,
+      },
+    });
+  }
+  console.log(`✓ Customer created: ${customer.email}`);
+
+  // 5. Seed Categories
   const categoriesData = [
     { slug: 'apparel', name: 'Handcrafted Apparel', description: 'Bespoke kurtas, tunics, and drapes by master artisans', sortOrder: 1 },
     { slug: 'leather', name: 'Artisan Leather', description: 'Vegetable-tanned Santiniketan and full-grain handcrafted leather', sortOrder: 2 },
@@ -42,7 +160,7 @@ async function main() {
   }
   console.log(`✓ Seeded ${categoriesData.length} categories`);
 
-  // 3. Seed Artisans
+  // 6. Seed Artisans / Stores (linking Noor Chikankari to storeOwner)
   const artisansData = [
     {
       id: 'artisan-chikankari',
@@ -54,9 +172,16 @@ async function main() {
       badge: 'National Awardee',
       bio: 'Generational master artisan carrying forward 400 years of Awadhi needlework with 32 authentic stitches on pure handspun muslin.',
       avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80',
+      bannerUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80',
+      storeEmail: 'contact@noorchikankari.in',
+      storePhone: '+919876543210',
       leadTimeMinDays: 4,
       leadTimeMaxDays: 6,
+      verified: true,
       isFeatured: true,
+      status: StoreStatus.APPROVED,
+      ownerId: storeOwner.id,
+      approvedAt: new Date(),
     },
     {
       id: 'artisan-bagru',
@@ -68,9 +193,16 @@ async function main() {
       badge: 'Master Weaver',
       bio: 'Practicing 5th generation natural indigo and madder mud-resist hand-block printing using hand-carved teakwood blocks.',
       avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+      bannerUrl: 'https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?auto=format&fit=crop&w=1200&q=80',
+      storeEmail: 'chippablockprints@craftly.in',
+      storePhone: '+919829012345',
       leadTimeMinDays: 5,
       leadTimeMaxDays: 7,
+      verified: true,
       isFeatured: true,
+      status: StoreStatus.APPROVED,
+      ownerId: storeOwner.id,
+      approvedAt: new Date(),
     },
     {
       id: 'artisan-leather',
@@ -84,7 +216,10 @@ async function main() {
       avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
       leadTimeMinDays: 3,
       leadTimeMaxDays: 5,
+      verified: true,
       isFeatured: true,
+      status: StoreStatus.APPROVED,
+      approvedAt: new Date(),
     },
     {
       id: 'artisan-maheshwari',
@@ -98,21 +233,27 @@ async function main() {
       avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
       leadTimeMinDays: 4,
       leadTimeMaxDays: 6,
+      verified: true,
       isFeatured: true,
+      status: StoreStatus.APPROVED,
+      approvedAt: new Date(),
     },
     {
       id: 'artisan-jewelry',
-      name: 'Ananya Rao',
-      studioName: 'Cuttack Filigree Guild',
-      craft: 'Tarakasi Silver Filigree',
-      location: 'Cuttack',
-      state: 'Odisha',
+      name: 'Keshav & Sunita Soni',
+      studioName: 'Johari Bazaar Smiths',
+      craft: 'Meenakari & Kundan Jewelry',
+      location: 'Johari Bazaar, Jaipur',
+      state: 'Rajasthan',
       badge: 'Heirloom Craft',
-      bio: 'Master of spiderweb-fine 92.5 Sterling silver filigree, transforming molten wires into intricate heirloom jewelry.',
-      avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=300&q=80',
+      bio: 'Flame-chased recycled brass with hand-enamelled Meenakari backplate and uncut kundan stones.',
+      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
       leadTimeMinDays: 3,
       leadTimeMaxDays: 5,
+      verified: true,
       isFeatured: false,
+      status: StoreStatus.APPROVED,
+      approvedAt: new Date(),
     },
     {
       id: 'artisan-pottery',
@@ -126,7 +267,10 @@ async function main() {
       avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
       leadTimeMinDays: 2,
       leadTimeMaxDays: 4,
+      verified: true,
       isFeatured: false,
+      status: StoreStatus.APPROVED,
+      approvedAt: new Date(),
     },
   ];
 
@@ -137,9 +281,9 @@ async function main() {
       create: art,
     });
   }
-  console.log(`✓ Seeded ${artisansData.length} artisan guilds`);
+  console.log(`✓ Seeded ${artisansData.length} artisan stores`);
 
-  // 4. Seed Products with Variants & Media
+  // 7. Seed Products with Variants & Media
   const productsData = [
     {
       id: 'prod-1',
@@ -160,11 +304,11 @@ async function main() {
       rating: 4.9,
       reviewsCount: 68,
       variants: [
-        { colorName: 'Ivory White', colorHex: '#FAF6EE', sampleImage: '/images/chikankari/ivory.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-        { colorName: 'Terracotta Rust', colorHex: '#B85834', sampleImage: '/images/chikankari/terracotta.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-        { colorName: 'Pistachio Sage', colorHex: '#7A8F78', sampleImage: '/images/chikankari/sage.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-        { colorName: 'Indigo Neel', colorHex: '#2B4365', sampleImage: '/images/chikankari/indigo.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-        { colorName: 'Saffron Marigold', colorHex: '#DE7C38', sampleImage: '/images/chikankari/terracotta.jpg', isPhotographedSample: false, availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+        { colorName: 'Ivory White', colorHex: '#FAF6EE', sampleImage: '/images/chikankari/ivory.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], stockQuantity: 25 },
+        { colorName: 'Terracotta Rust', colorHex: '#B85834', sampleImage: '/images/chikankari/terracotta.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], stockQuantity: 18 },
+        { colorName: 'Pistachio Sage', colorHex: '#7A8F78', sampleImage: '/images/chikankari/sage.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], stockQuantity: 15 },
+        { colorName: 'Indigo Neel', colorHex: '#2B4365', sampleImage: '/images/chikankari/indigo.jpg', isPhotographedSample: true, inStock: true, isMadeToOrder: false, availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], stockQuantity: 12 },
+        { colorName: 'Saffron Marigold', colorHex: '#DE7C38', sampleImage: null, isPhotographedSample: false, inStock: false, isMadeToOrder: true, leadTime: 'Made to Order (7-10 business days)', artisanNote: 'Individually hand-dyed with marigold and turmeric extract upon commission.', availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'], stockQuantity: 0 },
       ],
       media: [
         { url: '/images/chikankari/ivory.jpg', altText: 'Chikankari Kurta in Ivory White', sortOrder: 1 },
@@ -190,9 +334,9 @@ async function main() {
       rating: 4.9,
       reviewsCount: 44,
       variants: [
-        { colorName: 'Indigo Cobalt', colorHex: '#1E3A5F', sampleImage: '/images/bagru/indigo.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL'] },
-        { colorName: 'Madder Rust', colorHex: '#96432B', sampleImage: '/images/bagru/madder_rust.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL'] },
-        { colorName: 'Kashi Slate', colorHex: '#4A4E54', sampleImage: '/images/bagru/kashi_slate.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL'] },
+        { colorName: 'Indigo Cobalt', colorHex: '#1E3A5F', sampleImage: '/images/bagru/indigo.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL'], stockQuantity: 20 },
+        { colorName: 'Madder Rust', colorHex: '#96432B', sampleImage: '/images/bagru/madder_rust.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL'], stockQuantity: 14 },
+        { colorName: 'Kashi Slate', colorHex: '#4A4E54', sampleImage: '/images/bagru/kashi_slate.jpg', isPhotographedSample: true, availableSizes: ['XS', 'S', 'M', 'L', 'XL'], stockQuantity: 10 },
       ],
       media: [
         { url: '/images/bagru/indigo.jpg', altText: 'Bagru Dabu Dress in Indigo Cobalt', sortOrder: 1 },
@@ -217,8 +361,8 @@ async function main() {
       rating: 5.0,
       reviewsCount: 76,
       variants: [
-        { colorName: 'Warm Cognac Tan', colorHex: '#A05928', sampleImage: '/images/leather/cognac.jpg', isPhotographedSample: true, availableSizes: ['Standard Tote (15" x 13" x 5")'] },
-        { colorName: 'Dark Espresso', colorHex: '#33231D', sampleImage: '/images/leather/espresso.jpg', isPhotographedSample: true, availableSizes: ['Standard Tote (15" x 13" x 5")'] },
+        { colorName: 'Warm Cognac Tan', colorHex: '#A05928', sampleImage: '/images/leather/cognac.jpg', isPhotographedSample: true, availableSizes: ['Standard Tote (15" x 13" x 5")'], stockQuantity: 15 },
+        { colorName: 'Dark Espresso', colorHex: '#33231D', sampleImage: '/images/leather/espresso.jpg', isPhotographedSample: true, availableSizes: ['Standard Tote (15" x 13" x 5")'], stockQuantity: 10 },
       ],
       media: [
         { url: '/images/leather/cognac.jpg', altText: 'Santiniketan Leather Tote in Warm Cognac', sortOrder: 1 },
@@ -243,8 +387,8 @@ async function main() {
       rating: 4.8,
       reviewsCount: 39,
       variants: [
-        { colorName: 'Deep Maroon Zari', colorHex: '#58111A', sampleImage: '/images/textiles/maroon.jpg', isPhotographedSample: true, availableSizes: ['Standard 6.3m (Includes Blouse Piece)'] },
-        { colorName: 'Mustard Haldi', colorHex: '#C98A2C', sampleImage: '/images/textiles/mustard.jpg', isPhotographedSample: true, availableSizes: ['Standard 6.3m (Includes Blouse Piece)'] },
+        { colorName: 'Deep Maroon Zari', colorHex: '#58111A', sampleImage: '/images/textiles/maroon.jpg', isPhotographedSample: true, availableSizes: ['Standard 6.3m (Includes Blouse Piece)'], stockQuantity: 8 },
+        { colorName: 'Mustard Haldi', colorHex: '#C98A2C', sampleImage: '/images/textiles/mustard.jpg', isPhotographedSample: true, availableSizes: ['Standard 6.3m (Includes Blouse Piece)'], stockQuantity: 6 },
       ],
       media: [
         { url: '/images/textiles/maroon.jpg', altText: 'Maheshwari Silk-Cotton Saree in Deep Maroon', sortOrder: 1 },
@@ -252,28 +396,28 @@ async function main() {
     },
     {
       id: 'prod-5',
-      slug: 'cuttack-tarakasi-silver-jhumkas',
-      name: 'Filigree Tarakasi Silver Chandbali Jhumkas',
-      tagline: '92.5 Sterling Silver Fine Wire Art',
-      description: 'Whisper-light silver filigree crafted using hair-fine wires drawn through diamonds, coiled and soldered into delicate crescent blooms.',
-      craftDetails: 'Handmade by master goldsmiths in Cuttack using traditional charcoal torch brazing.',
-      materials: '92.5 Hallmarked Sterling Silver',
+      slug: 'meenakari-kundan-choker',
+      name: 'Hand-Hammered Meenakari & Kundan Choker',
+      tagline: 'Flame-Chased Brass with Enamelling',
+      description: 'Flame-chased recycled brass with hand-enamelled Meenakari backplate and uncut faux-kundan glass stones on an adjustable silk dori cord.',
+      craftDetails: 'Handmade by master smiths in Johari Bazaar using age-old enamelling recipes.',
+      materials: 'Recycled Brass, Glass Kundan & Silk Thread',
       artisanId: 'artisan-jewelry',
       categorySlug: 'jewelry',
-      basePricePaise: 185000,
-      compareAtPricePaise: 230000,
+      basePricePaise: 149900,
+      compareAtPricePaise: 199900,
       allowsCustomMeasurements: false,
       tailoringFeePaise: 0,
       leadTimeMinDays: 3,
       leadTimeMaxDays: 5,
-      rating: 4.9,
-      reviewsCount: 52,
+      rating: 4.8,
+      reviewsCount: 39,
       variants: [
-        { colorName: 'Oxidised Antique Silver', colorHex: '#A8A9AD', sampleImage: '/images/jewelry/silver.jpg', isPhotographedSample: true, availableSizes: ['One Size (4.2cm Drop)'] },
-        { colorName: '22K Gold Vermeil Dip', colorHex: '#D4AF37', sampleImage: '/images/jewelry/gold.jpg', isPhotographedSample: true, availableSizes: ['One Size (4.2cm Drop)'] },
+        { colorName: 'Antique Gold Finish', colorHex: '#C89D42', sampleImage: '/images/jewelry/gold.jpg', isPhotographedSample: true, availableSizes: ['Adjustable Dori (12" - 20")'], stockQuantity: 20 },
+        { colorName: 'Silver Oxide Polish', colorHex: '#969A9E', sampleImage: '/images/jewelry/silver.jpg', isPhotographedSample: true, availableSizes: ['Adjustable Dori (12" - 20")'], stockQuantity: 12 },
       ],
       media: [
-        { url: '/images/jewelry/silver.jpg', altText: 'Tarakasi Silver Chandbali Jhumkas', sortOrder: 1 },
+        { url: '/images/jewelry/gold.jpg', altText: 'Meenakari Kundan Choker', sortOrder: 1 },
       ],
     },
     {
@@ -286,8 +430,8 @@ async function main() {
       materials: '100% Lead-Free Natural Clay',
       artisanId: 'artisan-pottery',
       categorySlug: 'home',
-      basePricePaise: 95000, // ₹950
-      compareAtPricePaise: 125000,
+      basePricePaise: 89900, // ₹899
+      compareAtPricePaise: 119900,
       allowsCustomMeasurements: false,
       tailoringFeePaise: 0,
       leadTimeMinDays: 2,
@@ -295,8 +439,7 @@ async function main() {
       rating: 4.7,
       reviewsCount: 31,
       variants: [
-        { colorName: 'Earthen Red Clay', colorHex: '#9E472A', sampleImage: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=600&q=80', isPhotographedSample: true, availableSizes: ['180ml Standard Chai Cups (Box of 4)'] },
-        { colorName: 'Smoked Black Terracotta', colorHex: '#2B2B2B', sampleImage: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=600&q=80', isPhotographedSample: false, availableSizes: ['180ml Standard Chai Cups (Box of 4)'] },
+        { colorName: 'Earthen Red Clay', colorHex: '#9E472A', sampleImage: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=600&q=80', isPhotographedSample: true, availableSizes: ['180ml Standard Chai Cups (Box of 4)'], stockQuantity: 30 },
       ],
       media: [
         { url: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&w=600&q=80', altText: 'Molela Terracotta Chai Kulhad Set', sortOrder: 1 },
@@ -307,8 +450,9 @@ async function main() {
   for (const prod of productsData) {
     const categoryId = categoryMap.get(prod.categorySlug)!;
     const product = await prisma.product.upsert({
-      where: { slug: prod.slug },
+      where: { id: prod.id },
       update: {
+        slug: prod.slug,
         name: prod.name,
         tagline: prod.tagline,
         description: prod.description,
@@ -348,26 +492,43 @@ async function main() {
       },
     });
 
-    // Seed variants
     for (const v of prod.variants) {
       const existing = await prisma.productVariant.findFirst({
         where: { productId: product.id, colorName: v.colorName },
       });
-      if (!existing) {
+      if (existing) {
+        await prisma.productVariant.update({
+          where: { id: existing.id },
+          data: {
+            sampleImage: v.sampleImage ?? null,
+            isPhotographedSample: Boolean(v.isPhotographedSample),
+            isMadeToOrder: Boolean((v as any).isMadeToOrder),
+            leadTime: (v as any).leadTime ?? null,
+            artisanNote: (v as any).artisanNote ?? null,
+            inStock: (v as any).inStock ?? true,
+            stockQuantity: v.stockQuantity,
+            availableSizes: v.availableSizes,
+          },
+        });
+      } else {
         await prisma.productVariant.create({
           data: {
             productId: product.id,
             colorName: v.colorName,
             colorHex: v.colorHex,
-            sampleImage: v.sampleImage,
-            isPhotographedSample: v.isPhotographedSample,
+            sampleImage: v.sampleImage ?? null,
+            isPhotographedSample: Boolean(v.isPhotographedSample),
+            isMadeToOrder: Boolean((v as any).isMadeToOrder),
+            leadTime: (v as any).leadTime ?? null,
+            artisanNote: (v as any).artisanNote ?? null,
+            inStock: (v as any).inStock ?? true,
             availableSizes: v.availableSizes,
+            stockQuantity: v.stockQuantity,
           },
         });
       }
     }
 
-    // Seed media
     for (const m of prod.media) {
       const existing = await prisma.media.findFirst({
         where: { productId: product.id, url: m.url },
@@ -384,16 +545,16 @@ async function main() {
       }
     }
   }
-  console.log(`✓ Seeded ${productsData.length} curated products with variants and media`);
+  console.log(`✓ Seeded ${productsData.length} products with stock and variants`);
 
-  // 5. Seed Coupons
+  // 8. Seed Coupons
   const couponsData = [
     {
       code: 'CRAFTLY10',
       discountType: DiscountType.PERCENTAGE,
       discountValue: 10,
       minCartValuePaise: 0,
-      maxDiscountPaise: 100000, // ₹1,000 max
+      maxDiscountPaise: 100000,
       maxUsesPerUser: 3,
       isActive: true,
     },
@@ -401,16 +562,16 @@ async function main() {
       code: 'FIRSTCRAFT',
       discountType: DiscountType.PERCENTAGE,
       discountValue: 15,
-      minCartValuePaise: 150000, // ₹1,500 min
-      maxDiscountPaise: 150000, // ₹1,500 max
+      minCartValuePaise: 150000,
+      maxDiscountPaise: 150000,
       maxUsesPerUser: 1,
       isActive: true,
     },
     {
       code: 'ATELIER500',
       discountType: DiscountType.FLAT_PAISE,
-      discountValue: 50000, // ₹500 flat
-      minCartValuePaise: 250000, // ₹2,500 min
+      discountValue: 50000,
+      minCartValuePaise: 250000,
       maxDiscountPaise: 50000,
       maxUsesPerUser: 2,
       isActive: true,
@@ -424,42 +585,7 @@ async function main() {
       create: c,
     });
   }
-  console.log(`✓ Seeded ${couponsData.length} production coupons`);
-
-  // 6. Seed Sample Collector Reviews
-  await prisma.review.createMany({
-    data: [
-      {
-        productId: 'prod-1',
-        authorName: 'Ruchika Sen',
-        authorCity: 'Kolkata',
-        rating: 5,
-        headline: 'Authentic Lucknow Murri Work!',
-        comment: 'The custom bust and sleeve fit is perfection. The mulmul fabric is genuinely handspun and breathes like a dream in warm weather.',
-        verifiedBuyer: true,
-      },
-      {
-        productId: 'prod-1',
-        authorName: 'Meera Deshmukh',
-        authorCity: 'Pune',
-        rating: 5,
-        headline: 'Worth every rupee',
-        comment: 'You can clearly tell the difference between machine embroidery and Begum Akhtar’s needlework. The personalized monogram was a stunning touch.',
-        verifiedBuyer: true,
-      },
-      {
-        productId: 'prod-3',
-        authorName: 'Aditya Kashyap',
-        authorCity: 'Bengaluru',
-        rating: 5,
-        headline: 'Superb saddle leather patina',
-        comment: 'Smells of natural bark tanning, no chemical solvent odor. The embossed flower motifs look even richer in person.',
-        verifiedBuyer: true,
-      },
-    ],
-    skipDuplicates: true,
-  });
-  console.log(`✓ Seeded sample verified collector reviews`);
+  console.log(`✓ Seeded ${couponsData.length} coupons`);
 
   console.log('✅ Craftly database seed complete!');
 }

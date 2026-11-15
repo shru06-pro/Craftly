@@ -31,10 +31,16 @@ export function CartProvider({ children }) {
   // Add an item to the cart
   const addToCart = (product, customization = {}) => {
     const selectedColor = customization.selectedColor || product.colorVariants?.[0] || {
+      id: `${product.id}-default`,
       name: 'Standard',
       hex: '#FAF6EE',
       image: product.image,
+      inStock: true,
+      isMadeToOrder: false,
     };
+    const variantId = selectedColor.id || customization.variantId || `${product.id}-${selectedColor.name}`;
+    const isMadeToOrder = Boolean(selectedColor.isMadeToOrder ?? customization.isMadeToOrder);
+    const leadTime = selectedColor.leadTime || customization.leadTime || product.leadTime || 'Ready to ship';
     const selectedSize = customization.selectedSize || product.availableSizes?.[0] || 'Standard';
     const isCustomSized = Boolean(customization.isCustomSized);
     const customMeasurements = customization.customMeasurements || null;
@@ -43,7 +49,7 @@ export function CartProvider({ children }) {
     const quantity = customization.quantity || 1;
 
     // Unique cart item identifier based on specific configuration
-    const configKey = `${product.id}-${selectedColor.name}-${selectedSize}-${
+    const configKey = `${product.id}-${variantId}-${selectedSize}-${
       isCustomSized ? JSON.stringify(customMeasurements) : ''
     }-${monogramInitials}`;
 
@@ -62,6 +68,9 @@ export function CartProvider({ children }) {
         configKey,
         product,
         selectedColor,
+        variantId,
+        isMadeToOrder,
+        leadTime,
         selectedSize,
         isCustomSized,
         customMeasurements,
@@ -74,6 +83,13 @@ export function CartProvider({ children }) {
     });
 
     setIsCartOpen(true);
+  };
+
+  // Add multiple items to cart (e.g. Shop the Look bundle)
+  const addMultipleToCart = (items) => {
+    items.forEach(({ product, customization = {} }) => {
+      addToCart(product, customization);
+    });
   };
 
   // Remove single item
@@ -167,6 +183,7 @@ export function CartProvider({ children }) {
         isCartOpen,
         setIsCartOpen,
         addToCart,
+        addMultipleToCart,
         removeFromCart,
         updateQuantity,
         updateItemCustomization,

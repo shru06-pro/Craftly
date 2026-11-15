@@ -76,3 +76,77 @@ img {
     padding-right: var(--space-4);
   }
 }
+
+/* ===================================================================
+   Global Homepage Section Typography & Spacing System
+   Harmonious fluid typography, balanced wrapping, standardized rhythm
+   =================================================================== */
+
+.home-editorial-section,
+.outfit-inspiration-section,
+.artisan-spotlight-section,
+.reviews-section,
+.dispatch-section {
+  padding: var(--home-section-py, clamp(2.5rem, 4vw, 3.25rem)) 0;
+}
+
+.home-section-header,
+.outfit-header-wrap,
+.reviews-header {
+  text-align: center;
+  max-width: var(--home-header-max-w, 1040px);
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: var(--home-header-mb, 1.35rem);
+  padding: 0 1rem;
+}
+
+.home-section-title,
+.outfit-main-title,
+.reviews-header .section-title,
+.dispatch-title {
+  font-family: var(--font-serif);
+  font-size: var(--home-title-size, clamp(1.45rem, 2.15vw, 1.95rem));
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-espresso);
+  margin: 0 0 0.45rem;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.home-section-subtitle,
+.outfit-subtitle,
+.reviews-header .section-subtitle,
+.dispatch-desc {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--color-espresso-light);
+  max-width: var(--home-subtitle-max-w, 720px);
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0;
+  text-wrap: balance;
+}
+
+.home-tag-pill,
+.outfit-badge,
+.reviews-header .section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background-color: var(--color-surface);
+  border: 1px solid rgba(185, 88, 53, 0.25);
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-terracotta);
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 6px rgba(185, 88, 53, 0.06);
+}
+

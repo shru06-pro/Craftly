@@ -71,6 +71,13 @@
   --transition-base: 220ms cubic-bezier(0.16, 1, 0.3, 1);
   --transition-slow: 350ms cubic-bezier(0.16, 1, 0.3, 1);
 
+  /* Homepage Section & Typography Rhythm Tokens */
+  --home-section-py: clamp(2.5rem, 4vw, 3.25rem);
+  --home-header-max-w: 1040px;
+  --home-title-size: clamp(1.45rem, 2.15vw, 1.95rem);
+  --home-subtitle-max-w: 720px;
+  --home-header-mb: 1.35rem;
+
   /* Layout Container */
   --container-max: 1200px;
 }

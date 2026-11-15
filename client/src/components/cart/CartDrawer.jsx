@@ -152,6 +152,20 @@ export default function CartDrawer() {
                           </span>
                         )}
 
+                        {item.isMadeToOrder && (
+                          <span
+                            className="cart-spec-pill"
+                            style={{
+                              background: 'rgba(184, 88, 52, 0.1)',
+                              color: '#B85834',
+                              borderColor: '#E8D4C4',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Made to Order • {item.leadTime?.replace(/^Made to Order\s*\(?/i, '').replace(/\)$/, '') || '7-10 business days'}
+                          </span>
+                        )}
+
                         <span className="cart-spec-pill">
                           {item.isCustomSized ? (
                             <>

@@ -1,7 +1,7 @@
 // src/utils/productCustomization.js
 // Generic, catalogue-wide dynamic product customization & colorway resolution helper
 
-import { MOCK_PRODUCTS } from '../data/mockProducts';
+import { MOCK_PRODUCTS } from '../data/mockProducts.js';
 
 /**
  * Converts a 3-character or 6-character hex color to { r, g, b }.
@@ -100,6 +100,78 @@ export function findClosestAlternativeColor(product, targetColor, excludeColorNa
 }
 
 /**
+ * Generates an honest, editorial SVG data URI card for Made-to-Order or custom dye variants,
+ * clearly communicating that studio preview photography is unavailable and never reusing an unrelated colour's image.
+ */
+export function getMadeToOrderCardSvg(product, selectedColor) {
+  const title = (product?.name || 'Handcrafted Indian Artisan Piece')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const studio = (product?.artisan?.studio || 'Certified Master Ateliers')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const colorName = (selectedColor?.name || 'Artisan Custom Shade')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const colorHex = selectedColor?.hex || '#2B2B2B';
+  const leadTime = (selectedColor?.leadTime || 'Made to Order (7-10 business days)')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="700" viewBox="0 0 600 700">
+    <defs>
+      <linearGradient id="mtoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#FAF7F2"/>
+        <stop offset="100%" stop-color="#F2EBE0"/>
+      </linearGradient>
+      <filter id="mtoShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1A1817" flood-opacity="0.08"/>
+      </filter>
+    </defs>
+    <rect width="600" height="700" fill="url(#mtoBg)"/>
+    <rect x="24" y="24" width="552" height="652" rx="16" fill="none" stroke="#E6DCCD" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+    <!-- Badge -->
+    <rect x="170" y="56" width="260" height="32" rx="16" fill="#B85834"/>
+    <text x="300" y="77" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="1.5" fill="#FFFFFF" text-anchor="middle">MADE TO ORDER • COMMISSION</text>
+
+    <!-- Artisanal Color Swatch Disc -->
+    <g filter="url(#mtoShadow)">
+      <circle cx="300" cy="220" r="88" fill="#FFFFFF"/>
+      <circle cx="300" cy="220" r="80" fill="${colorHex}"/>
+      <circle cx="300" cy="220" r="80" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.3"/>
+    </g>
+
+    <text x="300" y="340" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" letter-spacing="1" fill="#7E746F" text-anchor="middle">AUTHENTIC DYE SWATCH</text>
+    <text x="300" y="372" font-family="Georgia, 'Times New Roman', serif" font-size="24" font-weight="bold" fill="#25201E" text-anchor="middle">${colorName}</text>
+    <text x="300" y="396" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#998D85" text-anchor="middle">${colorHex.toUpperCase()}</text>
+
+    <!-- Divider -->
+    <line x1="160" y1="420" x2="440" y2="420" stroke="#E6DCCD" stroke-width="1"/>
+
+    <!-- Product & Studio Details -->
+    <text x="300" y="455" font-family="Georgia, 'Times New Roman', serif" font-size="18" font-style="italic" fill="#25201E" text-anchor="middle">${title.slice(0, 38)}${title.length > 38 ? '...' : ''}</text>
+    <text x="300" y="482" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" fill="#6A5F59" text-anchor="middle">${studio}</text>
+
+    <!-- Transparent Notice Box -->
+    <rect x="70" y="515" width="460" height="74" rx="10" fill="#FFFFFF" stroke="#E6DCCD" stroke-width="1"/>
+    <text x="300" y="542" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#B85834" text-anchor="middle">📷 Studio Preview Photo Unavailable</text>
+    <text x="300" y="563" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#7E746F" text-anchor="middle">Hand-dyed to order upon commission. An unrelated colour photo is never shown.</text>
+    <text x="300" y="579" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#7E746F" text-anchor="middle">Cut &amp; silhouette match the studio model piece.</text>
+
+    <!-- Lead Time Pill -->
+    <rect x="180" y="612" width="240" height="30" rx="15" fill="#FAF6EE" stroke="#D1C3B2" stroke-width="1"/>
+    <text x="300" y="632" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#4A423D" text-anchor="middle">⏱ ${leadTime}</text>
+  </svg>`;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+/**
  * Generates an elegant SVG data URI fallback for when no suitable bitmap image exists,
  * preventing any broken image icons from ever displaying.
  */
@@ -146,10 +218,15 @@ export function resolveProductColor(product, colorOrName) {
   const variants = product.colorVariants || [];
   if (!variants.length) {
     return {
+      id: `${product.id}-default`,
       name: 'Standard Shade',
       hex: '#FAF6EE',
       image: product.image,
+      inStock: true,
+      isMadeToOrder: false,
       isPhotographedSample: true,
+      stockQuantity: 20,
+      leadTime: product.leadTime || 'Ready to ship',
     };
   }
 
@@ -157,26 +234,36 @@ export function resolveProductColor(product, colorOrName) {
     return variants[0];
   }
 
-  const nameToMatch = typeof colorOrName === 'string' ? colorOrName : colorOrName.name;
-  if (!nameToMatch) return variants[0];
+  if (typeof colorOrName === 'object' && colorOrName !== null) {
+    if (colorOrName.id) {
+      const byId = variants.find((v) => v.id === colorOrName.id);
+      if (byId) return byId;
+    }
+    if (colorOrName.name) {
+      const byName = variants.find((v) => v.name.toLowerCase() === colorOrName.name.toLowerCase());
+      if (byName) return byName;
+    }
+  }
 
-  const found = variants.find(
-    (v) => v.name.toLowerCase() === nameToMatch.toLowerCase()
-  );
+  if (typeof colorOrName === 'string') {
+    const byId = variants.find((v) => v.id === colorOrName);
+    if (byId) return byId;
+    const byName = variants.find((v) => v.name.toLowerCase() === colorOrName.toLowerCase());
+    if (byName) return byName;
+  }
 
-  return found || variants[0];
+  return variants[0];
 }
 
 /**
  * Master resolution function for colorway images:
- * 1. Returns dedicated image if available and not failed
- * 2. If dedicated image unavailable or failed, returns closest visually similar available colour of the SAME product
- * 3. If no alternative variant has an image, falls back to base product image
- * 4. If base image fails, retains current working image
- * 5. If everything fails, returns graceful SVG data URI fallback
+ * - A selectable colour must represent a genuinely supported product variant.
+ * - Each variant must have its own correct image if an image preview is advertised.
+ * - Never reuse another colour's image as if it were the selected colour.
+ * - If a colour is supported only as made-to-order, label it clearly and do not pretend an accurate preview exists.
  */
 export function resolveColorwayImage(product, selectedColor, options = {}) {
-  const { currentImage, failedUrls = new Set(), excludeColors = [] } = options;
+  const { failedUrls = new Set() } = options;
 
   if (!product) {
     return {
@@ -185,6 +272,8 @@ export function resolveColorwayImage(product, selectedColor, options = {}) {
       alternativeColor: null,
       isDedicated: false,
       isFallback: false,
+      isMadeToOrder: false,
+      previewAvailable: false,
       selectedColor: null,
     };
   }
@@ -193,78 +282,50 @@ export function resolveColorwayImage(product, selectedColor, options = {}) {
   const catalogProduct = MOCK_PRODUCTS.find((p) => p.id === product.id) || product;
   const resolvedColor = resolveProductColor(catalogProduct, selectedColor);
 
-  // 1. Check if selected color has a valid dedicated image
+  // 1. Check if selected color is Made-to-Order or has no photographed sample
+  // NEVER reuse another colour's image as if it were the selected colour!
+  if (resolvedColor?.isMadeToOrder || !resolvedColor?.image) {
+    return {
+      src: getMadeToOrderCardSvg(catalogProduct, resolvedColor),
+      isAlternative: false,
+      alternativeColor: null,
+      isDedicated: false,
+      isFallback: false,
+      isMadeToOrder: true,
+      previewAvailable: false,
+      selectedColor: resolvedColor,
+    };
+  }
+
+  // 2. Check if selected color has a dedicated, genuine studio image
   const dedicatedImage = resolvedColor?.image;
-  const hasDedicated = Boolean(
+  if (
     dedicatedImage &&
     typeof dedicatedImage === 'string' &&
     dedicatedImage.trim() !== '' &&
     !failedUrls.has(dedicatedImage)
-  );
-
-  if (hasDedicated) {
+  ) {
     return {
       src: dedicatedImage,
       isAlternative: false,
       alternativeColor: null,
       isDedicated: true,
       isFallback: false,
+      isMadeToOrder: false,
+      previewAvailable: true,
       selectedColor: resolvedColor,
     };
   }
 
-  // 2. Selected color has no image or its image failed:
-  // Find the closest visually similar available colour of the SAME product
-  const closestVariant = findClosestAlternativeColor(
-    catalogProduct,
-    resolvedColor,
-    [resolvedColor?.name, ...excludeColors],
-    failedUrls
-  );
-
-  if (closestVariant?.image && !failedUrls.has(closestVariant.image)) {
-    return {
-      src: closestVariant.image,
-      isAlternative: true,
-      alternativeColor: closestVariant,
-      isDedicated: false,
-      isFallback: false,
-      selectedColor: resolvedColor,
-    };
-  }
-
-  // 3. Fallback to base product image if valid and not failed
-  const baseImage = catalogProduct.image || product.image;
-  if (baseImage && typeof baseImage === 'string' && baseImage.trim() !== '' && !failedUrls.has(baseImage)) {
-    return {
-      src: baseImage,
-      isAlternative: true,
-      alternativeColor: catalogProduct.colorVariants?.[0] || null,
-      isDedicated: false,
-      isFallback: false,
-      selectedColor: resolvedColor,
-    };
-  }
-
-  // 4. Retain current working image if provided and not failed
-  if (currentImage && typeof currentImage === 'string' && currentImage.trim() !== '' && !failedUrls.has(currentImage)) {
-    return {
-      src: currentImage,
-      isAlternative: true,
-      alternativeColor: null,
-      isDedicated: false,
-      isFallback: false,
-      selectedColor: resolvedColor,
-    };
-  }
-
-  // 5. Graceful SVG fallback (never broken image)
+  // 3. Graceful SVG fallback only if the dedicated image failed to load
   return {
     src: getCraftlyFallbackSvg(catalogProduct, resolvedColor),
-    isAlternative: true,
+    isAlternative: false,
     alternativeColor: null,
     isDedicated: false,
     isFallback: true,
+    isMadeToOrder: Boolean(resolvedColor?.isMadeToOrder),
+    previewAvailable: false,
     selectedColor: resolvedColor,
   };
 }
@@ -279,10 +340,12 @@ export function getProductPreviewImage(product, selectedColor, options = {}) {
 }
 
 /**
- * Checks whether the selected color has a dedicated, matching studio photograph.
+ * Checks whether the selected color has a dedicated, matching studio photograph of the same garment.
  */
 export function hasDistinctColorwayImage(product, selectedColor) {
   if (!product || !selectedColor) return false;
-  const result = resolveColorwayImage(product, selectedColor);
-  return result.isDedicated && !result.isAlternative && !result.isFallback;
+  const catalogProduct = MOCK_PRODUCTS.find((p) => p.id === product.id) || product;
+  const resolvedColor = resolveProductColor(catalogProduct, selectedColor);
+  if (!resolvedColor || resolvedColor.isMadeToOrder || !resolvedColor.image) return false;
+  return Boolean(resolvedColor.image && resolvedColor.isPhotographedSample !== false);
 }

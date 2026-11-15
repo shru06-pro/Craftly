@@ -156,14 +156,14 @@ export default function ProductCard({ product, onSelect }) {
                 const isSelected = selectedColor?.name === c.name;
                 return (
                   <button
-                    key={c.name}
+                    key={c.id || c.name}
                     type="button"
                     className={`product-swatch-btn ${isSelected ? 'active' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedColor(c);
                     }}
-                    title={`${c.name}${!isDistinctImage && !c.isPhotographedSample ? ' (Artisan made-to-order shade)' : ''}`}
+                    title={`${c.name}${c.isMadeToOrder ? ' (Artisan Made-to-Order Shade)' : ''}`}
                     aria-label={`Select ${c.name} shade`}
                     aria-pressed={isSelected}
                   >
@@ -178,6 +178,11 @@ export default function ProductCard({ product, onSelect }) {
 
             <span className="product-swatch-label" title={selectedColor?.name}>
               {selectedColor ? selectedColor.name : `${product.colorVariants.length} shades`}
+              {selectedColor?.isMadeToOrder && (
+                <span style={{ marginLeft: '4px', fontSize: '9.5px', color: 'var(--color-terracotta)', fontWeight: 600 }}>
+                  (Made to Order)
+                </span>
+              )}
             </span>
           </div>
         )}

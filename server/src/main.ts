@@ -1,12 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import express from 'express';
+import { join } from 'path';
 import { AppModule } from './app.module.js';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter.js';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Serve static uploads
+  const uploadPath = join(process.cwd(), 'uploads');
+  app.use('/uploads', express.static(uploadPath));
 
   // Global API Prefix
   app.setGlobalPrefix('v1');
@@ -40,12 +46,18 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Craftly Atelier & Marketplace API')
     .setDescription(
-      'Enterprise backend API for Craftly — India’s curated artisan marketplace and bespoke tailoring studio.',
+      'Enterprise backend API for Craftly — India’s curated artisan marketplace, multi-vendor stores, and bespoke tailoring studio.',
     )
-    .setVersion('1.0.0')
+    .setVersion('2.0.0')
+    .addBearerAuth()
+    .addTag('Authentication & Identity', 'Customer, store owner, and admin authentication, phone OTP')
+    .addTag('Stores', 'Browse approved artisan stores and manage store profiles')
+    .addTag('Store Owner Products & Inventory', 'Store-specific product creation, variants, and stock management')
+    .addTag('Customization', 'Bespoke customization inquiries, reference image uploads, and status tracking')
+    .addTag('Orders & Multi-Vendor Fulfilment', 'Multi-store checkout, split fulfilment sub-orders, and milestone tracking')
+    .addTag('Platform Administration & Moderation', 'Store approvals, product moderation, order monitoring, and admin management')
     .addTag('Catalogue', 'Handcrafted products, artisan studios, and category collections')
     .addTag('Pricing & Checkout', 'Server-authoritative pricing engine, quote generation, and coupon rules')
-    .addTag('Orders & Checkout', 'Idempotent order sessions, artisan fulfilment splits, and milestone tracking')
     .addTag('Craft Advisor', 'Heirloom knowledge base and catalogue-backed recommendation query')
     .addTag('Newsletter', 'The Craftly Dispatch subscription management')
     .build();

@@ -11,3 +11,6 @@ export const formatINR = (amount) => {
     maximumFractionDigits: 0,
   }).format(amount);
 };
+
+export const formatCurrency = formatINR;
+export default formatINR;

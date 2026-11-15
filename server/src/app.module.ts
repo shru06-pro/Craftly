@@ -8,6 +8,11 @@ import { PricingModule } from './modules/pricing/pricing.module.js';
 import { OrdersModule } from './modules/orders/orders.module.js';
 import { AssistantModule } from './modules/assistant/assistant.module.js';
 import { NewsletterModule } from './modules/newsletter/newsletter.module.js';
+import { AuthModule } from './modules/auth/auth.module.js';
+import { StoresModule } from './modules/stores/stores.module.js';
+import { StoreProductsModule } from './modules/store-products/store-products.module.js';
+import { CustomizationModule } from './modules/customization/customization.module.js';
+import { AdminModule } from './modules/admin/admin.module.js';
 
 @Module({
   imports: [
@@ -16,9 +21,14 @@ import { NewsletterModule } from './modules/newsletter/newsletter.module.js';
       envFilePath: '.env',
     }),
     PrismaModule,
+    AuthModule,
     CatalogueModule,
+    StoresModule,
+    StoreProductsModule,
     PricingModule,
     OrdersModule,
+    CustomizationModule,
+    AdminModule,
     AssistantModule,
     NewsletterModule,
   ],

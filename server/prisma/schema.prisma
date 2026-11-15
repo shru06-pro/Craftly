@@ -9,10 +9,36 @@ generator client {
 
 enum Role {
   CUSTOMER
+  STORE_OWNER
   ARTISAN
   SUPPORT
   OPS
   ADMIN
+  SUPER_ADMIN
+}
+
+enum AdminRoleType {
+  SUPER_ADMIN
+  STORE_APPROVAL_ADMIN
+  PRODUCT_ADMIN
+  ORDER_ADMIN
+  CUSTOMER_SUPPORT_ADMIN
+  ANALYTICS_ADMIN
+}
+
+enum StoreStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum CustomizationRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CLARIFICATION_REQUESTED
+  COMPLETED
 }
 
 enum UserStatus {
@@ -67,6 +93,7 @@ enum FulfilmentStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+  REJECTED
 }
 
 enum PaymentMethod {
@@ -117,11 +144,29 @@ model User {
   orders               Order[]
   reviews              Review[]
   cart                 Cart?
-  artisanStudio        Artisan?               @relation("ArtisanOwner")
+  stores               Artisan[]              @relation("StoreOwner")
+  storeApplications    StoreApplication[]     @relation("OwnerApplications")
+  reviewedApplications StoreApplication[]     @relation("ReviewedApplications")
+  adminProfile         AdminProfile?
+  customizationRequests CustomizationRequest[]
+  shoppingPreferences  Json?
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
 
   @@map("users")
+}
+
+model AdminProfile {
+  id          String        @id @default(uuid())
+  userId      String        @unique
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleType    AdminRoleType @default(CUSTOMER_SUPPORT_ADMIN)
+  permissions String[]      @default([])
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("admin_profiles")
 }
 
 model Address {
@@ -162,31 +207,75 @@ model MeasurementProfile {
   @@map("measurement_profiles")
 }
 
+model OtpVerification {
+  id         String   @id @default(uuid())
+  phone      String
+  otpCode    String
+  expiresAt  DateTime
+  verified   Boolean  @default(false)
+  attempts   Int      @default(0)
+  lastSentAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([phone])
+  @@map("otp_verifications")
+}
+
 // -------------------------------------------------------------
-// Artisans & Studios
+// Stores / Artisans & Studios
 // -------------------------------------------------------------
 model Artisan {
+  id                    String                 @id @default(uuid())
+  name                  String
+  studioName            String
+  craft                 String
+  location              String
+  state                 String
+  bio                   String
+  avatarUrl             String?
+  badge                 String?
+  bannerUrl             String?
+  storeEmail            String?
+  storePhone            String?
+  addressLine           String?
+  pincode               String?
+  status                StoreStatus            @default(APPROVED)
+  rejectionReason       String?
+  leadTimeMinDays       Int                    @default(4)
+  leadTimeMaxDays       Int                    @default(7)
+  verified              Boolean                @default(true)
+  isFeatured            Boolean                @default(false)
+  ownerId               String?
+  owner                 User?                  @relation("StoreOwner", fields: [ownerId], references: [id])
+  products              Product[]
+  orderItems            OrderItem[]
+  subOrders             StoreOrder[]
+  applications          StoreApplication[]
+  customizationRequests CustomizationRequest[]
+  appliedAt             DateTime               @default(now())
+  approvedAt            DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  @@map("artisans")
+}
+
+model StoreApplication {
   id              String      @id @default(uuid())
-  name            String
-  studioName      String
-  craft           String
-  location        String
-  state           String
-  bio             String
-  avatarUrl       String?
-  badge           String?
-  leadTimeMinDays Int         @default(4)
-  leadTimeMaxDays Int         @default(7)
-  verified        Boolean     @default(true)
-  isFeatured      Boolean     @default(false)
-  ownerId         String?     @unique
-  owner           User?       @relation("ArtisanOwner", fields: [ownerId], references: [id])
-  products        Product[]
-  orderItems      OrderItem[]
+  storeId         String
+  store           Artisan     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  ownerId         String
+  owner           User        @relation("OwnerApplications", fields: [ownerId], references: [id], onDelete: Cascade)
+  status          StoreStatus @default(PENDING)
+  notes           String?
+  rejectionReason String?
+  reviewedById    String?
+  reviewedBy      User?       @relation("ReviewedApplications", fields: [reviewedById], references: [id])
+  reviewedAt      DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  @@map("artisans")
+  @@map("store_applications")
 }
 
 // -------------------------------------------------------------
@@ -206,37 +295,39 @@ model Category {
 }
 
 model Product {
-  id                       String           @id @default(uuid())
-  slug                     String           @unique
+  id                       String                 @id @default(uuid())
+  slug                     String                 @unique
   name                     String
   tagline                  String?
   description              String
   craftDetails             String?
   materials                String?
   artisanId                String
-  artisan                  Artisan          @relation(fields: [artisanId], references: [id])
+  artisan                  Artisan                @relation(fields: [artisanId], references: [id])
   categoryId               String
-  category                 Category         @relation(fields: [categoryId], references: [id])
+  category                 Category               @relation(fields: [categoryId], references: [id])
   basePricePaise           Int
   compareAtPricePaise      Int?
-  hsnCode                  String           @default("6204")
-  taxPercent               Float            @default(5.0)
-  allowsCustomMeasurements Boolean          @default(true)
-  tailoringFeePaise        Int              @default(35000) // ₹350 = 35000 paise
-  leadTimeMinDays          Int              @default(4)
-  leadTimeMaxDays          Int              @default(7)
-  isBespoke                Boolean          @default(true)
-  isHandcrafted            Boolean          @default(true)
-  rating                   Float            @default(4.9)
-  reviewsCount             Int              @default(0)
-  status                   ProductStatus    @default(LIVE)
+  hsnCode                  String                 @default("6204")
+  taxPercent               Float                  @default(5.0)
+  allowsCustomMeasurements Boolean                @default(true)
+  tailoringFeePaise        Int                    @default(35000) // ₹350 = 35000 paise
+  leadTimeMinDays          Int                    @default(4)
+  leadTimeMaxDays          Int                    @default(7)
+  isBespoke                Boolean                @default(true)
+  isHandcrafted            Boolean                @default(true)
+  isAvailable              Boolean                @default(true)
+  rating                   Float                  @default(4.9)
+  reviewsCount             Int                    @default(0)
+  status                   ProductStatus          @default(LIVE)
   variants                 ProductVariant[]
   media                    Media[]
   cartItems                CartItem[]
   reviews                  Review[]
   orderItems               OrderItem[]
-  createdAt                DateTime         @default(now())
-  updatedAt                DateTime         @updatedAt
+  customizationRequests    CustomizationRequest[]
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
 
   @@map("products")
 }
@@ -247,9 +338,14 @@ model ProductVariant {
   product              Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   colorName            String
   colorHex             String
-  sampleImage          String
+  sampleImage          String?  // Nullable: genuine photographed sample image URL or null if made-to-order
   isPhotographedSample Boolean  @default(false)
+  isMadeToOrder        Boolean  @default(false) // True if shade is dyed/tailored upon commission
+  leadTime             String?  // e.g. "Made to Order (7-10 business days)"
+  artisanNote          String?  // Atelier notes regarding dye process or batch commissioning
   availableSizes       String[] // e.g. ["XS", "S", "M", "L", "XL", "Custom"]
+  stockQuantity        Int      @default(20)
+  sku                  String?
   inStock              Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -305,20 +401,20 @@ model CartItem {
 }
 
 model Coupon {
-  id                 String             @id @default(uuid())
-  code               String             @unique
-  discountType       DiscountType
-  discountValue      Int // e.g. 10 for 10%, or 50000 for ₹500 flat
-  minCartValuePaise  Int                @default(0)
-  maxDiscountPaise   Int?
-  maxGlobalUses      Int?
-  maxUsesPerUser     Int                @default(1)
-  usedCount          Int                @default(0)
-  isActive           Boolean            @default(true)
-  expiresAt          DateTime?
-  redemptions        CouponRedemption[]
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id                String             @id @default(uuid())
+  code              String             @unique
+  discountType      DiscountType
+  discountValue     Int // e.g. 10 for 10%, or 50000 for ₹500 flat
+  minCartValuePaise Int                @default(0)
+  maxDiscountPaise  Int?
+  maxGlobalUses     Int?
+  maxUsesPerUser    Int                @default(1)
+  usedCount         Int                @default(0)
+  isActive          Boolean            @default(true)
+  expiresAt         DateTime?
+  redemptions       CouponRedemption[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   @@map("coupons")
 }
@@ -335,7 +431,7 @@ model CouponRedemption {
 }
 
 // -------------------------------------------------------------
-// Orders, Fulfilment & Production Milestones
+// Orders, Multi-Store Sub-Orders & Milestones
 // -------------------------------------------------------------
 model Order {
   id                  String        @id @default(uuid())
@@ -354,6 +450,7 @@ model Order {
   shippingAddress     Json // Full snapshot of the shipping address
   idempotencyKey      String?       @unique
   items               OrderItem[]
+  storeOrders         StoreOrder[]
   payments            Payment[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
@@ -361,10 +458,32 @@ model Order {
   @@map("orders")
 }
 
+model StoreOrder {
+  id                String           @id @default(uuid())
+  subOrderNumber    String           @unique // e.g. "CRF-IN-849201-1"
+  orderId           String
+  order             Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  storeId           String
+  store             Artisan          @relation(fields: [storeId], references: [id])
+  status            FulfilmentStatus @default(AWAITING_ARTISAN)
+  subtotalPaise     Int
+  tailoringFeePaise Int              @default(0)
+  shippingFeePaise  Int              @default(0)
+  totalPaise        Int
+  rejectionReason   String?
+  items             OrderItem[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@map("store_orders")
+}
+
 model OrderItem {
   id                   String                 @id @default(uuid())
   orderId              String
   order                Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  storeOrderId         String?
+  storeOrder           StoreOrder?            @relation(fields: [storeOrderId], references: [id], onDelete: Cascade)
   artisanId            String
   artisan              Artisan                @relation(fields: [artisanId], references: [id])
   productId            String
@@ -375,6 +494,7 @@ model OrderItem {
   isCustomSized        Boolean                @default(false)
   measurementsSnapshot Json?
   monogramInitials     String?
+  customizationNotes   String?
   unitPricePaise       Int
   tailoringFeePaise    Int                    @default(0)
   quantity             Int                    @default(1)
@@ -418,6 +538,33 @@ model Payment {
 }
 
 // -------------------------------------------------------------
+// Customization System
+// -------------------------------------------------------------
+model CustomizationRequest {
+  id                   String                     @id @default(uuid())
+  productId            String
+  product              Product                    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  storeId              String
+  store                Artisan                    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  userId               String
+  user                 User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItemId          String?
+  title                String
+  description          String
+  referenceImages      String[]                   @default([])
+  customerNotes        String?
+  storeOwnerResponse   String?
+  rejectionReason      String?
+  clarificationMessage String?
+  quotedPricePaise     Int?
+  status               CustomizationRequestStatus @default(PENDING)
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+
+  @@map("customization_requests")
+}
+
+// -------------------------------------------------------------
 // Reviews & Trust
 // -------------------------------------------------------------
 model Review {
@@ -442,13 +589,13 @@ model Review {
 // Marketing & Engagement
 // -------------------------------------------------------------
 model NewsletterSubscriber {
-  id                String           @id @default(uuid())
-  email             String           @unique
-  status            SubscriberStatus @default(ACTIVE)
-  source            String           @default("storefront_footer")
-  unsubscribeToken  String           @unique @default(uuid())
-  subscribedAt      DateTime         @default(now())
-  unsubscribedAt    DateTime?
+  id               String           @id @default(uuid())
+  email            String           @unique
+  status           SubscriberStatus @default(ACTIVE)
+  source           String           @default("storefront_footer")
+  unsubscribeToken String           @unique @default(uuid())
+  subscribedAt     DateTime         @default(now())
+  unsubscribedAt   DateTime?
 
   @@map("newsletter_subscribers")
 }

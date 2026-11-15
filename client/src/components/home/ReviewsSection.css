@@ -1,15 +1,55 @@
 /* src/components/home/ReviewsSection.css */
 
 .reviews-section {
-  padding: var(--space-16) 0;
+  padding: var(--home-section-py, clamp(2.5rem, 4vw, 3.25rem)) 0;
   background-color: var(--color-sand-50);
   border-bottom: 1px solid var(--color-sand-200);
 }
 
 .reviews-header {
   text-align: center;
-  max-width: 580px;
-  margin: 0 auto var(--space-10);
+  max-width: var(--home-header-max-w, 1040px);
+  margin: 0 auto var(--home-header-mb, 1.35rem);
+  padding: 0 1rem;
+}
+
+.reviews-header .section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background-color: var(--color-surface);
+  border: 1px solid rgba(185, 88, 53, 0.25);
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-terracotta);
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 6px rgba(185, 88, 53, 0.06);
+}
+
+.reviews-header .section-title {
+  font-family: var(--font-serif);
+  font-size: var(--home-title-size, clamp(1.45rem, 2.15vw, 1.95rem));
+  font-weight: 600;
+  color: var(--color-espresso);
+  margin: 0 0 0.45rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.reviews-header .section-subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--color-espresso-light);
+  max-width: var(--home-subtitle-max-w, 720px);
+  margin: 0 auto;
+  text-wrap: balance;
 }
 
 .reviews-grid {

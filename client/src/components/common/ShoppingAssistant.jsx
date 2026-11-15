@@ -15,14 +15,15 @@ import { parseShoppingQuery } from '../../utils/assistantNLP';
 import { formatINR } from '../../utils/formatCurrency';
 import { getProductPreviewImage, getCraftlyFallbackSvg } from '../../utils/productCustomization';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import './ShoppingAssistant.css';
 
 const DEFAULT_SUGGESTED_PROMPTS = [
-  "Show me kurtas under ₹1000",
-  "Find products in indigo",
-  "Suggest an outfit for a wedding",
-  "Show me handmade products",
-  "Help me choose a size",
+  "Suggest college outfits under ₹1,000",
+  "Find tops that match wide-leg jeans",
+  "Recommend office outfits",
+  "Suggest affordable festive outfits",
+  "Create an Indo-Western look",
 ];
 
 const getCurrentTimestamp = () => {
@@ -32,6 +33,7 @@ const getCurrentTimestamp = () => {
 export default function ShoppingAssistant({ isOpen, onClose, onOpen, onSelectProduct }) {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const [internalOpen, setInternalOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [addedItemIds, setAddedItemIds] = useState({});
@@ -88,7 +90,7 @@ function nextMsgId(prefix) {
     };
 
     // Parse with rule-based NLP parser
-    const responseData = parseShoppingQuery(query);
+    const responseData = parseShoppingQuery(query, user?.shoppingPreferences);
 
     const assistantMessage = {
       id: nextMsgId('assistant'),
