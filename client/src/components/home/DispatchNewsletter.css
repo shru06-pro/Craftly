@@ -1,0 +1,108 @@
+/* src/components/home/DispatchNewsletter.css */
+
+.dispatch-section {
+  padding: var(--home-section-py, clamp(2.5rem, 4vw, 3.25rem)) 0;
+  background-color: var(--color-sand-100);
+}
+
+.dispatch-envelope-card {
+  background-color: var(--color-surface);
+  border: 1px dashed var(--color-sand-300);
+  border-radius: var(--radius-xl);
+  padding: clamp(1.75rem, 3.5vw, 2.5rem) clamp(1.25rem, 3vw, 2.5rem);
+  box-shadow: var(--shadow-md);
+  max-width: 860px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+}
+
+.dispatch-postmark {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  border: 1.5px solid var(--color-terracotta);
+  border-radius: var(--radius-full);
+  width: 68px;
+  height: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-terracotta);
+  text-transform: uppercase;
+  transform: rotate(-12deg);
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+}
+
+.dispatch-title {
+  font-family: var(--font-serif);
+  font-size: var(--home-title-size, clamp(1.45rem, 2.15vw, 1.95rem));
+  font-weight: 600;
+  color: var(--color-espresso);
+  margin-bottom: 0.45rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.dispatch-desc {
+  font-size: 0.95rem;
+  color: var(--color-espresso-light);
+  max-width: var(--home-subtitle-max-w, 720px);
+  margin: 0 auto 1.35rem;
+  line-height: 1.55;
+  text-wrap: balance;
+}
+
+.dispatch-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.dispatch-input {
+  flex: 1;
+  background-color: var(--color-sand-50);
+  border: 1px solid var(--color-sand-300);
+  border-radius: var(--radius-full);
+  padding: 12px 20px;
+  font-size: var(--text-sm);
+  color: var(--color-espresso);
+  font-family: inherit;
+}
+
+.dispatch-input:focus {
+  outline: none;
+  border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 3px rgba(185, 88, 53, 0.12);
+}
+
+.dispatch-success-box {
+  background-color: var(--color-sand-50);
+  border: 1px solid var(--color-sage);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  color: var(--color-sage);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  display: inline-block;
+}
+
+@media (max-width: 600px) {
+  .dispatch-form {
+    flex-direction: column;
+  }
+  .dispatch-input {
+    width: 100%;
+  }
+  .dispatch-postmark {
+    display: none;
+  }
+}

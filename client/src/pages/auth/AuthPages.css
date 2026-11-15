@@ -1,0 +1,222 @@
+/* src/pages/auth/AuthPages.css */
+.auth-page-container {
+  min-height: calc(100vh - 120px);
+  background: var(--color-sand-50, #fcfbf9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.auth-card {
+  background: #ffffff;
+  border: 1px solid var(--color-sand-200, #eedecb);
+  border-radius: var(--border-radius-md, 8px);
+  width: 100%;
+  max-width: 480px;
+  padding: 36px 32px;
+  box-shadow: 0 4px 20px rgba(30, 24, 18, 0.05);
+}
+
+.auth-card.wide {
+  max-width: 680px;
+}
+
+.auth-card-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-brand-logo {
+  font-family: var(--font-serif, serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-espresso, #1f1b18);
+  text-decoration: none;
+}
+
+.auth-brand-logo span {
+  color: var(--color-terracotta, #b85834);
+}
+
+.auth-card-title {
+  font-family: var(--font-serif, serif);
+  font-size: 22px;
+  color: var(--color-espresso, #1f1b18);
+  margin: 8px 0 4px;
+}
+
+.auth-card-subtitle {
+  color: var(--color-sand-600, #73685e);
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--color-sand-100, #f6edd9);
+  padding: 4px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  gap: 4px;
+}
+
+.auth-tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-sand-700, #5c534a);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-tab-btn.active {
+  background: #ffffff;
+  color: var(--color-espresso, #1f1b18);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.auth-alert {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.auth-alert.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.auth-alert.info {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-espresso, #1f1b18);
+  margin-bottom: 6px;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-sand-500, #96897c);
+}
+
+.input-wrap input,
+.input-wrap textarea,
+.input-wrap select {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1px solid var(--color-sand-200, #eedecb);
+  border-radius: 6px;
+  font-size: 14px;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-wrap input:focus,
+.input-wrap textarea:focus,
+.input-wrap select:focus {
+  border-color: var(--color-terracotta, #b85834);
+}
+
+.auth-submit-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.auth-footer-links {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-sand-600, #73685e);
+  margin-top: 24px;
+}
+
+.auth-inline-link {
+  color: var(--color-terracotta, #b85834);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.auth-inline-link:hover {
+  text-decoration: underline;
+}
+
+.demo-accounts-box {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--color-sand-200, #eedecb);
+  text-align: center;
+}
+
+.demo-accounts-title {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-sand-500, #96897c);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.demo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.demo-chip {
+  background: var(--color-sand-100, #f6edd9);
+  border: 1px solid var(--color-sand-300, #e1cbb3);
+  color: var(--color-espresso, #1f1b18);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.demo-chip:hover {
+  background: var(--color-terracotta, #b85834);
+  color: #ffffff;
+  border-color: var(--color-terracotta, #b85834);
+}
+
